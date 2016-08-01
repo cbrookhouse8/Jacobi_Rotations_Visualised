@@ -20,7 +20,7 @@ Download and install Processing from http://www.processing.org.
 
 ![Diagonalization](Jacobi_JS/media/Diagonalization.png)
 
-![Jacobi_notes](media/Jacobi_notes.jpg)
+![Jacobi_notes](Jacobi_notes.jpg)
 
 ## References
 
