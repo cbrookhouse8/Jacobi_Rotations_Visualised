@@ -16,7 +16,15 @@ This process finds the Eigenvectors and Eigenvalues of the initial Symmetric Mat
 
 Download and install Processing from http://www.processing.org.
 
+## Notes
+
+![Diagonalization](Jacobi_JS/media/Diagonalization.png)
+
+![Jacobi_notes](media/Jacobi_notes.jpg)
+
 ## References
+
+https://www.youtube.com/watch?v=R9UoFyqJca8
 
 Eric Lengyel, Mathematics for 3D Game Programming and Computer Graphics
 
