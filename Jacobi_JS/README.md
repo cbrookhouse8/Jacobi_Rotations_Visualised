@@ -1,14 +1,14 @@
-** Introduction
+## Introduction
 
 To create a similarly styled online version of the matrix decomposition shown in this 1976 film:
 
-(https://www.youtube.com/watch?v=R9UoFyqJca8)
+https://www.youtube.com/watch?v=R9UoFyqJca8
 
 ![Diagonalization](media/Diagonalization.png)
 
 ![Rotation_Matrix](media/Rotation_Matrix.png)
 
-** Resources
+## Resources
 
 This in part adapts:
 
