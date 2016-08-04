@@ -20,7 +20,7 @@ Download and install Processing from http://www.processing.org.
 
 A still from a 1976 Matrix Singular Value Decomposition Film uploaded to YouTube by Cleve Moler, inventor of MATLAB.
 
-![Diagonalization](Jacobi_JS/media/Diagonalization.png|width=200px)
+![Diagonalization]([Jacobi_JS/media/Diagonalization.png|width=200px])
 
 ![Jacobi_notes](Jacobi_notes.jpg)
 
