@@ -10,6 +10,8 @@ var sep;
 var pyrHeight;
 var orbitRadius = 500;
 var orbitTheta = 0;
+var Jacobi = new EigenDecomposer();  
+
 function init() {
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(75, 1, 1, 10000);
