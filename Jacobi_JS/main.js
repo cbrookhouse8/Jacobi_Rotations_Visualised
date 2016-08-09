@@ -1,4 +1,3 @@
-// looks really grainy 
 // https://stemkoski.github.io/Three.js/Shapes.html
 
 var scene;
@@ -8,18 +7,25 @@ var light;
 var objects;
 var dim;
 var sep;
-
+var pyrHeight;
+var orbitRadius = 500;
+var orbitTheta = 0;
 function init() {
 	scene = new THREE.Scene();
 	camera = new THREE.PerspectiveCamera(75, 1, 1, 10000);
+    camera.position.set(orbitRadius*Math.sin(orbitTheta),
+                        0,
+                        orbitRadius*Math.cos(orbitTheta));
 
-	renderer = new THREE.WebGLRenderer();
+	renderer = new THREE.WebGLRenderer( {antialias: true} );
 	var canvas = renderer.domElement;
 	document.body.appendChild(canvas);
 
 	objects = [];
     dim = 10;
     sep = 30;
+    pyrHeight = 4*sep;
+
 	for (var i = 0; i < dim*dim ; i++) {
 		addObject();
 	}
@@ -41,10 +47,10 @@ function addObject() {
 	var multiMaterial = [darkMaterial, wireframeMaterial]; 
 
    
-      var rad = sep / Math.pow(2,0.5); 
+      var rad = sep / Math.pow(2,0.5);      
           geometry = new THREE.CylinderGeometry(0,   // radius at the top
                                                 rad, // radius at the bottom
-                                                sep*4,  // height
+                                                pyrHeight,  // height
                                                 4,   // segments around the radius
                                                 4);  // segments along height
 
@@ -73,6 +79,7 @@ function addObject() {
     var mesh = pyramid;
                     scene.add(mesh);
                     objects.push(mesh);
+        mesh.rotation.y = Math.PI/4;
     	return mesh;
 }
 
@@ -115,16 +122,25 @@ function renderLoop() {
         var z_id = ~~(i / dim);
 		var object = objects[i];
 
-		object.rotation.y = Math.PI/4;
+//		object.rotation.y += 0.01;
 
-        object.position.y = -100;
+        object.position.y = -200;
         object.position.x = -sep*(dim-1)/2 + x_id*sep;
-        object.position.z = -400 - sep*(dim-1)/2 + z_id*sep;
+        object.position.z = -sep*(dim-1)/2 + z_id*sep;
 
-        object.scale.y = 1 + 0.1*Math.pow(dim-1-z_id,1.2); 
-        
+        var sf = 1 + 0.1*Math.pow(dim-1-z_id,1.2); 
+        object.scale.y = sf; 
+        object.position.y += (pyrHeight/2)*sf; 
+
+//        camera.position.x = orbitRadius
+
         // see Junior's code for example use of blenders
 	}
+
+    orbitTheta += 0.005;
+    camera.position.x = orbitRadius*Math.sin(orbitTheta);
+    camera.position.z = orbitRadius*Math.cos(orbitTheta);                   0,
+    camera.rotation.y = orbitTheta;
 
 	renderer.render(scene,camera);
 	requestAnimationFrame(renderLoop);
