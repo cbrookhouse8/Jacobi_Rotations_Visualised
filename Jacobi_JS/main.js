@@ -37,6 +37,7 @@ function init() {
 	window.addEventListener("resize", window_onResize);
 	window_onResize();
 	renderLoop();
+    console.log(Jacobi.nextElement());
 }
 
 function addObject() {

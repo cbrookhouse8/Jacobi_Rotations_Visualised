@@ -1,9 +1,19 @@
-function EigenDecomposer(rows,cols) {
+/*
+Though comments may have helped to clarify the Numerical Recipes algorithm
+There's still so much work to do to clean this up
+
+
+Have yet to finish making sure that the init and nextElement functions
+are accessing class variables using the 'this' keyword.
+*/
+
+
+function EigenDecomposer(rows) {
         console.log("Eigendecomposition");
         this.n = rows;
-        this.m = cols;
+        this.m = rows;         // keep it a square matrix
 
-        this.n = 20;           // dimension of symmetric matrix
+        this.n = 4;           // dimension of symmetric matrix
         this.M;                // symmetric matrix to be diagonalized
         this.V;                // becomes the matrix of eigenvectors (i.e. R_i * ... * R_1) 
         this.D;                // stores the diagonal entries (eigenvalues of M)
@@ -44,19 +54,11 @@ EigenDecomposer.prototype.init = function() {
         this.z = new Array(n); // will be initialized to the zero vector 
        
        // generate an arbitrary symmetric matrix of dimension n
-       for (var i = 0 ; i < n ; i++) {
-         for (var j = i ; j < n ; j++) {
-           var r1 = random(0,1);
-               r1 = r1 < 0.5 ? r1+0.3 : r1;
-           var val = Math.round(20*r1)+0.0;
-               this.M[j*n+i] = val;
-               if (i != j) this.M[i*n+j] = val;
-         }
-       }
+        this.M = this.createRealSymmetricMatrix(n);
 
        // Initialize the eigenvector matrix to the identity matrix
        for (var i = 0 ; i < n ; i++) {
-            for (var j = 0 ; j < n ; j++) V[j*n+i] = 0.0;
+            for (var j = 0 ; j < n ; j++) this.V[j*n+i] = 0.0;
             this.V[i*n+i] = 1.0;
        }
        
@@ -74,30 +76,187 @@ EigenDecomposer.prototype.init = function() {
             this.q = this.p+1;
 }
 
+EigenDecomposer.prototype.createRealSymmetricMatrix = function(n) {
+       var M = [];
+       for (var i = 0 ; i < n ; i++) {
+         for (var j = i ; j < n ; j++) {
+           var r1 = Math.random();
+               r1 = r1 < 0.5 ? r1+0.3 : r1;
+           var val = Math.round(20*r1)+0.0;
+               M[j*n+i] = val;
+               if (i != j) M[i*n+j] = val;
+         }
+       }
+       return M;
+}
+
+// sum upper off diagonal elements of a square matrix M
+EigenDecomposer.prototype.sumUpperOffDiagonals = function(M,n) {
+        var sum = 0.0;
+        for (var i = 0 ; i < n-1 ; i++) {
+            for (var j = i+1 ; j < n ; j++) {
+                sum += Math.abs(this.M[j*n+i]);
+            }
+        }
+        return sum;
+}
+
 EigenDecomposer.prototype.nextElement = function() {
         var epsilon = 0.00004539992; 
         
             // Check if M has converged to a diagonal matrix
              
             // Check the normal return: relies on quadratic convergence to machine underflow.
-    
-            var sum = 0.0;
-    
-            // sum (upper) off-diagonal elements...
-            for (var i = 0 ; i < n-1 ; i++) {
-                for (var j = i+1 ; j < n ; j++) {
-                    sum += Math.abs(M[j*n+i]);
-                }
-            } 
-            
+            var n = this.n; 
+            var sum = this.sumUpperOffDiagonals(this.M,n);    
+
             // Maybe move this to the bottom so that
             // one extra sweep isn't done
             if(sum === 0.0){
                 console.log("");
-                console.log("Decomposition Complete in "+sweep+" sweeps");
-                sweep = maxSweeps;
+                console.log("Decomposition Complete in "+this.sweep+" sweeps");
+                this.sweep = this.maxSweeps;
+                this.V = this.sortEigenvectors(V);
+            } // IS THIS PAREN ENDING AT THE CORRECT PLACE???
 
+            // THE ALGORITHM PROPER
+           
+            // for now, this block isn't of use- but perhaps use tresh later 
+            if (this.sweep < 4) {
+                this.tresh = 0.2*sum/(n*n);
+            } else {
+                this.tresh = 0.0;
+            }
+    
+            // iterate over M[][] above the main diagonal
+            // if this.p < n-1...
+            //   if this.q < n...
+                  console.log(""); 
+                  console.log("In sweep "+this.sweep+" eliminate M("+this.p+","+this.q+") = "+this.M[this.q*n+this.p]);
+                  
+                  var pq_sizeCheck = 100.0*Math.abs(this.M[this.q*n+this.p]);
+
+                    if (Math.abs(this.M[this.q*n+this.p]) < epsilon) {
+                          this.M[this.q*n+this.p] = 0;
+                          console.log("");
+                          console.log("M["+this.p+"]["+this.q+"] is zeroed");
+                        }
+                    
+                    // After four sweeps, skip the rotation if 
+                    // the off-diagonal element is small.
+                  
+                  /*
+                    if (i > 4 && (float)(Math.abs(d[this.p])+pq_sizeCheck) == (float)Math.abs(d[this.p])
+                      && (float)(Math.abs(d[this.q])+pq_sizeCheck) == (float)Math.abs(d[this.q])) { 
+                        // skip the rotation
+                        // zero M(this.p,this.q)
+                        M[this.p][this.q] = 0.0;
+                    } else if (Math.abs(M[this.p][this.q]) > tresh) {
+                       // do the rotation
+                  */
+    
+                      if (true) {           // remove this line at some point
+                                            // and uncomment the above  
+    
+                        // Use h here to be: h = M(this.q,this.q)-M(this.p,this.p)
+                        this.h = this.D[this.q]-this.D[this.p];    // see 11.1.7, 11.1.8 which will give tan(theta)
+    
+                        // set tan(theta) or its proxy
+                        if ((Math.abs(this.h)+pq_sizeCheck) === Math.abs(this.h)) {
+                             this.t = this.M[this.q*n+this.p]/this.h;
+                        } else {
+                             this.theta = 0.5*this.h/this.M[this.q*n+this.p]; // Equation (11.1.10). 
+                             this.t = 1.0/(Math.abs(this.theta)+Math.sqrt(1.0+this.theta*this.theta));
+                             if (this.theta < 0.0) this.t = -this.t;
+                        }
+                    
+                        // using tan(this.theta), find cos(theta), sin(theta) and this.tau   
+                        this.c = 1.0/(Math.sqrt(1+this.t*this.t)); // 11.1.11
+                        this.s = this.t*this.c;             // 11.1.12
+                        this.tau = this.s/(1.0+this.c);     // 11.1.18
+    
+                        // Repurpose h here for use as tM(this.p,this.q).
+                        // This term features in 11.1.14-15
+                        this.h = this.t*this.M[this.q*n+this.p];
+    
+                        // z accumulates these terms of form
+                        // tan(theta)*M[this.p][this.q] (eq. 11.1.14)
+                        
+                        // remember, z[] is reinitialized to 0,
+                        // after every sweep
+    
+                        this.z[this.p] -=  this.h; 
+                        this.z[this.q] +=  this.h; 
+    
+                        // Set M'(this.p,this.p), M'(this.q,this.q), M'(this.p,this.q)
+    
+                        // M'(this.p,this.p) = M(this.p,this.p)-tM(this.p,this.q) (11.1.14)
+                        // M'(this.q,this.q) (11.1.15)
+    
+                        this.D[this.p] -=  this.h; // == M'(this.p,this.p) 
+                        this.D[this.q] +=  this.h; // == M'(this.q,this.q)
+    
+                        // Set M'(this.p,this.q) = 0; (11.1.13)
+                        this.M[this.q*n+this.p] = 0.0;
+    
+                        // Now Update:
+                        // M'(j,this.p), M'(j,this.q), M'(this.p,j), M'(this.q,j)  
+    
+                        // remember, this.p < this.q from how the loops 
+                        // are configured
+    
+                        // Case of rotations 1 ≤ j < this.p.
+                        // M’(j,this.p) and M’(j,this.q) for 1 <= j < this.p  
+                        for (var j = 0; j < this.p; j++) {
+                            this.applyRotations(this.M,j,this.p,j,this.q,this.s,tau);
+                        }
+                      
+                        // Case of rotations this.p < j < this.q.
+                        // M’(this.p,j) and M’(j,this.q) for this.p <= j < this.q  
+                        for (var j = this.p+1 ; j < this.q ; j++) {
+                            this.applyRotations(this.M,this.p,j,j,this.q,this.s,tau);
+                        }
+                        
+                        // Case of rotations this.q < j ≤ n.
+                        // M’(this.p,j) and M’(this.q,j) for this.q < j <= n 
+                        for (var j = this.q+1 ; j < n ; j++) {
+                            this.applyRotations(this.M,this.p,j,this.q,j,this.s,this.tau);
+                        }
+                        
+                        // update the rotation "matrix"
+                        // we only need to modify the cols, this.p and this.q
+                        for (var j = 0 ; j < n ; j++) {
+                            this.applyRotations(this.V,j,this.p,j,this.q,this.s,this.tau); 
+                        }
+                        
+                    } // if true
+                    
+                    if (this.q < n-1) {
+                     this.q++; 
+                    } else {
+                     this.p++; 
+                     this.q = this.p+1;
+                    }
+                    
+                    if (this.p == n-1) {
+                         console.log("");
+                         console.log("End of sweep "+sweep);
+                         this.sweep++; // on to next sweep
+                         this.p = 0;
+                         this.q = this.p+1; 
+        
+                        // Update d with the sum of tapq, and reinitialize z.
+                        for (var ip = 0; ip < n; ip++) {
+                            this.b[ip] += this.z[ip];
+                            this.D[ip] = this.b[ip];
+                            this.z[ip] = 0.0;
+                        }
+                    }
+} // end of nextElement()
+
+EigenDecomposer.prototype.sortEigenvectors = function(V,D,n) {
                 // sort the eigenvectors by the magnitude of the Eigenvalues
+                // (add sorting of eigenvalues to visualisation?) 
 
                 // each index in D corresponds to a column in V 
                 
@@ -139,160 +298,13 @@ EigenDecomposer.prototype.nextElement = function() {
                             newV[j*n+i] = V[indexMaps[j]*n+i];
                         }
                     }
-                   
-                    for (var i = 0 ; i < n*n ; i++) {
-                        var row = Math.floor(i/n);
-                        var col = (i+n)%n;    
-                        V[col*n+row] = newV[col*n+row];
-                    }
-                
-                console.log("");
-                for (var i = 0 ; i < D.length ; i++) {
-                    console.log("Lambda "+i+" : "+D[i]);
-                }
-                console.log("");
-                printMat(V,n,"V");
-            }
 
-            // THE ALGORITHM PROPER
-           
-            // for now, this block isn't of use- but perhaps use tresh later 
-            if (sweep < 4) {
-                tresh = 0.2*sum/(n*n);
-            } else {
-                tresh = 0.0;
-            }
-    
-            // iterate over M[][] above the main diagonal
-            // if p < n-1...
-            //   if q < n...
-                  console.log(""); 
-                  console.log("In sweep "+sweep+" eliminate M("+p+","+q+") = "+M[q*n+p]);
-                  
-                  var pq_sizeCheck = 100.0*Math.abs(M[q*n+p]);
+                    return newV;
+}
 
-                    if (Math.abs(M[q*n+p]) < epsilon) {
-                          M[q*n+p] = 0;
-                          console.log("");
-                          console.log("M["+p+"]["+q+"] is zeroed");
-                        }
-                    
-                    // After four sweeps, skip the rotation if 
-                    // the off-diagonal element is small.
-                  
-                  /*
-                    if (i > 4 && (float)(Math.abs(d[p])+pq_sizeCheck) == (float)Math.abs(d[p])
-                      && (float)(Math.abs(d[q])+pq_sizeCheck) == (float)Math.abs(d[q])) { 
-                        // skip the rotation
-                        // zero M(p,q)
-                        M[p][q] = 0.0;
-                    } else if (Math.abs(M[p][q]) > tresh) {
-                       // do the rotation
-                  */
-    
-                      if (true) {           // remove this line at some point
-                                            // and uncomment the above  
-    
-                        // Use h here to be: h = M(q,q)-M(p,p)
-                        h = D[q]-D[p];    // see 11.1.7, 11.1.8 which will give tan(theta)
-    
-                        // set tan(theta) or its proxy
-                        if ((Math.abs(h)+pq_sizeCheck) === Math.abs(h)) {
-                             t = M[q*n+p]/h;
-                        } else {
-                             theta = 0.5*h/M[q*n+p]; // Equation (11.1.10). 
-                             t = 1.0/(Math.abs(theta)+Math.sqrt(1.0+theta*theta));
-                             if (theta < 0.0) t = -t;
-                        }
-                    
-                        // using tan(theta), find cos(theta), sin(theta) and tau   
-                        c = 1.0/(Math.sqrt(1+t*t)); // 11.1.11
-                        s = t*c;             // 11.1.12
-                        tau = s/(1.0+c);     // 11.1.18
-    
-                        // Repurpose h here for use as tM(p,q).
-                        // This term features in 11.1.14-15
-                        h = t*M[q*n+p];
-    
-                        // z accumulates these terms of form
-                        // tan(theta)*M[p][q] (eq. 11.1.14)
-                        
-                        // remember, z[] is reinitialized to 0,
-                        // after every sweep
-    
-                        z[p] -=  h; 
-                        z[q] +=  h; 
-    
-                        // Set M'(p,p), M'(q,q), M'(p,q)
-    
-                        // M'(p,p) = M(p,p)-tM(p,q) (11.1.14)
-                        // M'(q,q) (11.1.15)
-    
-                        D[p] -=  h; // == M'(p,p) 
-                        D[q] +=  h; // == M'(q,q)
-    
-                        // Set M'(p,q) = 0; (11.1.13)
-                        M[q*n+p] = 0.0;
-    
-                        // Now Update:
-                        // M'(j,p), M'(j,q), M'(p,j), M'(q,j)  
-    
-                        // remember, p < q from how the loops 
-                        // are configured
-    
-                        // Case of rotations 1 ≤ j < p.
-                        // M’(j,p) and M’(j,q) for 1 <= j < p  
-                        for (var j = 0; j < p; j++) {
-                            ROTATE(M,j,p,j,q,s,tau);
-                        }
-                      
-                        // Case of rotations p < j < q.
-                        // M’(p,j) and M’(j,q) for p <= j < q  
-                        for (var j = p+1 ; j < q ; j++) {
-                            ROTATE(M,p,j,j,q,s,tau);
-                        }
-                        
-                        // Case of rotations q < j ≤ n.
-                        // M’(p,j) and M’(q,j) for q < j <= n 
-                        for (var j = q+1 ; j < n ; j++) {
-                            ROTATE(M,p,j,q,j,s,tau);
-                        }
-                        
-                        // update the rotation "matrix"
-                        // we only need to modify the cols, p and q
-                        for (var j = 0 ; j < n ; j++) {
-                            ROTATE(V,j,p,j,q,s,tau); 
-                        }
-                        
-                    } // if true
-                    
-                    if (q < n-1) {
-                     q++; 
-                    } else {
-                     p++; 
-                     q = p+1;
-                    }
-                    
-                    if (p == n-1) {
-                         console.log("");
-                         console.log("End of sweep "+sweep);
-                         sweep++; // on to next sweep
-                         p = 0;
-                         q = p+1; 
-        
-                        // Update d with the sum of tapq, and reinitialize z.
-                        for (var ip = 0; ip < n; ip++) {
-                            b[ip] += z[ip];
-                            D[ip] = b[ip];
-                            z[ip] = 0.0;
-                        }
-                    }
-} // end of nextElement()
-
-
-EigenDecomposer.prototype.ROTATE = function(a,i,j,k,l,s,tau) {
-                 var temp_1 = this.a[j*this.n+i];
-                 var temp_2 = this.a[l*this.n+k];
+EigenDecomposer.prototype.applyRotations = function(a,i,j,k,l,s,tau) {
+                 var temp_1 = a[j*this.n+i];
+                 var temp_2 = a[l*this.n+k];
                  a[j*this.n+i] = temp_1-s*(temp_2+temp_1*tau);
                  a[l*this.n+k] = temp_2+s*(temp_1-temp_2*tau);
 }
