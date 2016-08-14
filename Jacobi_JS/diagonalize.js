@@ -39,45 +39,54 @@ function EigenDecomposer(rows) {
                           // helps with calculation of D
 
         this.maxSweeps;       // maximum number of sweeps we'll allow
-
+        this.maxValue;        // maximum absolute value in the matrix
         this.init();
+
+        this.maxValue;
 }
 
 EigenDecomposer.prototype.init = function() {
-        var n = this.n;
+       var n = this.n;
 
-        this.M = new Array(n*n);
-        this.V = new Array(n*n);
-        this.D = new Array(n); // to be initialized to the diagonal of M[][]
+       this.M = new Array(n*n);
+       this.V = new Array(n*n);
+       this.D = new Array(n); // to be initialized to the diagonal of M[][]
 
-        this.b = new Array(n); // to be initialized to the diagonal of M[][]
-        this.z = new Array(n); // will be initialized to the zero vector 
+       this.b = new Array(n); // to be initialized to the diagonal of M[][]
+       this.z = new Array(n); // will be initialized to the zero vector 
        
        // generate an arbitrary symmetric matrix of dimension n
-        this.M = this.createRealSymmetricMatrix(n);
-
+       this.M = this.RealSymmetricMatrix(n);
+       this.maxValue = this.findMaxAbsoluteValue(this.M);
+       console.log(this.maxValue);       
        // Initialize the eigenvector matrix to the identity matrix
-       for (var i = 0 ; i < n ; i++) {
-            for (var j = 0 ; j < n ; j++) this.V[j*n+i] = 0.0;
-            this.V[i*n+i] = 1.0;
-       }
+       this.V = this.IdentityMatrix(n); 
        
         // Initialize b and d to the diagonal of M[][]
-        for (var i = 0 ; i < n ; i++) {
+       for (var i = 0 ; i < n ; i++) {
            this.b[i] = this.D[i] = this.M[i*n+i]+0;
            
            // accumulates terms of the form tan(theta)*a[p][q] (eq. 11.1.14)
            this.z[i] = 0.0;
-        }
+       }
 
-            this.maxSweeps = 6;
-            this.sweep = 1;
-            this.p = 0;
-            this.q = this.p+1;
+       this.maxSweeps = 6;
+       this.sweep = 1;
+       this.p = 0;
+       this.q = this.p+1;
 }
 
-EigenDecomposer.prototype.createRealSymmetricMatrix = function(n) {
-       var M = [];
+EigenDecomposer.prototype.IdentityMatrix = function(n) {
+       var M = new Array(n*n);
+       for (var i = 0 ; i < n ; i++) {
+            for (var j = 0 ; j < n ; j++) M[j*n+i] = 0.0;
+            M[i*n+i] = 1.0;
+       }
+       return M;
+}
+
+EigenDecomposer.prototype.RealSymmetricMatrix = function(n) {
+       var M = new Array(n*n);
        for (var i = 0 ; i < n ; i++) {
          for (var j = i ; j < n ; j++) {
            var r1 = Math.random();
@@ -110,14 +119,14 @@ EigenDecomposer.prototype.nextElement = function() {
             var n = this.n; 
             var sum = this.sumUpperOffDiagonals(this.M,n);    
 
-            // Maybe move this to the bottom so that
-            // one extra sweep isn't done
+            // move this to the bottom so that
+            // one extra sweep isn't done?
             if(sum === 0.0){
                 console.log("");
                 console.log("Decomposition Complete in "+this.sweep+" sweeps");
                 this.sweep = this.maxSweeps;
-                this.V = this.sortEigenvectors(V);
-            } // IS THIS PAREN ENDING AT THE CORRECT PLACE???
+                this.V = this.sortEigenvectors(this.V,this.D,n);
+            }
 
             // THE ALGORITHM PROPER
            
@@ -140,7 +149,7 @@ EigenDecomposer.prototype.nextElement = function() {
                           this.M[this.q*n+this.p] = 0;
                           console.log("");
                           console.log("M["+this.p+"]["+this.q+"] is zeroed");
-                        }
+                    }
                     
                     // After four sweeps, skip the rotation if 
                     // the off-diagonal element is small.
@@ -175,12 +184,12 @@ EigenDecomposer.prototype.nextElement = function() {
                         this.s = this.t*this.c;             // 11.1.12
                         this.tau = this.s/(1.0+this.c);     // 11.1.18
     
-                        // Repurpose h here for use as tM(this.p,this.q).
+                        // Repurpose h here for use as tM(p,q).
                         // This term features in 11.1.14-15
                         this.h = this.t*this.M[this.q*n+this.p];
     
                         // z accumulates these terms of form
-                        // tan(theta)*M[this.p][this.q] (eq. 11.1.14)
+                        // tan(theta)*M[p][q] (eq. 11.1.14)
                         
                         // remember, z[] is reinitialized to 0,
                         // after every sweep
@@ -253,6 +262,23 @@ EigenDecomposer.prototype.nextElement = function() {
                         }
                     }
 } // end of nextElement()
+
+EigenDecomposer.prototype.getMaxElement = function() {
+     return this.maxValue;
+}
+
+EigenDecomposer.prototype.getM = function() {
+    return M;
+}
+
+EigenDecomposer.prototype.findMaxAbsoluteValue = function(M) {
+   var curMax = 0; 
+   for (var i in M) {
+       var temp = Math.abs(M[i]);
+       if (temp > curMax) curMax = temp;
+   }
+   return curMax;
+}
 
 EigenDecomposer.prototype.sortEigenvectors = function(V,D,n) {
                 // sort the eigenvectors by the magnitude of the Eigenvalues

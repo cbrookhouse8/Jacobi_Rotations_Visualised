@@ -11,6 +11,7 @@ var pyrHeight;
 var orbitRadius = 500;
 var orbitTheta = 0;
 var Jacobi = new EigenDecomposer();  
+var scale;
 
 function init() {
 	scene = new THREE.Scene();
@@ -27,6 +28,9 @@ function init() {
     dim = 10;
     sep = 30;
     pyrHeight = 4*sep;
+
+    scale = pyrHeight/Jacobi.getMaxElement(); 
+    console.log("scale = "+scale);
 
 	for (var i = 0; i < dim*dim ; i++) {
 		addObject();
