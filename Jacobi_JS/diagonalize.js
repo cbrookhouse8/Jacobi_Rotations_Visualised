@@ -10,10 +10,9 @@ are accessing class variables using the 'this' keyword.
 
 function EigenDecomposer(rows) {
         console.log("Eigendecomposition");
-        this.n = rows;
+        this.n = rows;         // dimension of the matrix
         this.m = rows;         // keep it a square matrix
 
-        this.n = 4;           // dimension of symmetric matrix
         this.M;                // symmetric matrix to be diagonalized
         this.V;                // becomes the matrix of eigenvectors (i.e. R_i * ... * R_1) 
         this.D;                // stores the diagonal entries (eigenvalues of M)
@@ -217,13 +216,13 @@ EigenDecomposer.prototype.nextElement = function() {
                         // Case of rotations 1 ≤ j < this.p.
                         // M’(j,this.p) and M’(j,this.q) for 1 <= j < this.p  
                         for (var j = 0; j < this.p; j++) {
-                            this.applyRotations(this.M,j,this.p,j,this.q,this.s,tau);
+                            this.applyRotations(this.M,j,this.p,j,this.q,this.s,this.tau);
                         }
                       
                         // Case of rotations this.p < j < this.q.
                         // M’(this.p,j) and M’(j,this.q) for this.p <= j < this.q  
                         for (var j = this.p+1 ; j < this.q ; j++) {
-                            this.applyRotations(this.M,this.p,j,j,this.q,this.s,tau);
+                            this.applyRotations(this.M,this.p,j,j,this.q,this.s,this.tau);
                         }
                         
                         // Case of rotations this.q < j ≤ n.
@@ -249,7 +248,7 @@ EigenDecomposer.prototype.nextElement = function() {
                     
                     if (this.p == n-1) {
                          console.log("");
-                         console.log("End of sweep "+sweep);
+                         console.log("End of sweep "+this.sweep);
                          this.sweep++; // on to next sweep
                          this.p = 0;
                          this.q = this.p+1; 
@@ -263,12 +262,29 @@ EigenDecomposer.prototype.nextElement = function() {
                     }
 } // end of nextElement()
 
-EigenDecomposer.prototype.getMaxElement = function() {
-     return this.maxValue;
+EigenDecomposer.prototype.getMaxAbsElement = function() {
+    return this.findMaxAbsoluteValue(this.M);
 }
 
 EigenDecomposer.prototype.getM = function() {
-    return M;
+     var n = this.n;
+     var curM = new Array(n*n);
+     for (var i = 0 ; i < n ; i++) {
+        for (var j = 0 ; j < n ; j++) {
+          if (i < j) { 
+           // copy from the upper diagonal
+           curM[j*n+i] = this.M[j*n+i];
+          } else if (i == j) { 
+           // copy from the array of diagonal entries
+           curM[j*n+i] = this.D[i];
+          } else {
+           // using the symmetry of M, 
+           // copy from the upper triangle
+           curM[j*n+i] = this.M[i*n+j];
+          }
+        }
+     }
+     return curM;
 }
 
 EigenDecomposer.prototype.findMaxAbsoluteValue = function(M) {

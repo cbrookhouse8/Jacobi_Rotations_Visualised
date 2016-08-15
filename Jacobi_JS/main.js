@@ -10,8 +10,10 @@ var sep;
 var pyrHeight;
 var orbitRadius = 500;
 var orbitTheta = 0;
-var Jacobi = new EigenDecomposer();  
-var scale;
+var Jacobi; 
+var maxLogVal;
+var interval = 0;
+var currentMatrix;
 
 function init() {
 	scene = new THREE.Scene();
@@ -25,12 +27,15 @@ function init() {
 	document.body.appendChild(canvas);
 
 	objects = [];
-    dim = 10;
+    dim = 4;
     sep = 30;
     pyrHeight = 4*sep;
 
-    scale = pyrHeight/Jacobi.getMaxElement(); 
-    console.log("scale = "+scale);
+    Jacobi = new EigenDecomposer(dim);
+
+    maxLogVal = Math.log(Jacobi.getMaxAbsElement()+1);
+    
+    currentMatrix = Jacobi.getM();
 
 	for (var i = 0; i < dim*dim ; i++) {
 		addObject();
@@ -41,7 +46,6 @@ function init() {
 	window.addEventListener("resize", window_onResize);
 	window_onResize();
 	renderLoop();
-    console.log(Jacobi.nextElement());
 }
 
 function addObject() {
@@ -124,22 +128,25 @@ function window_onResize() {
 }
 
 function renderLoop() {
-	for (var i = 0; i < objects.length; i++) {
-        var x_id = i % dim;
-        var z_id = ~~(i / dim);
-		var object = objects[i];
+    var n = dim;
+    if (interval === 0) {
+       Jacobi.nextElement();
+       currentMatrix = Jacobi.getM();
+    } 
 
-//		object.rotation.y += 0.01;
+	for (var i = 0; i < n*n; i++) {
+        var x_id = i % n;
+        var z_id = ~~(i / n);
+		var object = objects[i];
 
         object.position.y = -200;
         object.position.x = -sep*(dim-1)/2 + x_id*sep;
         object.position.z = -sep*(dim-1)/2 + z_id*sep;
-
-        var sf = 1 + 0.1*Math.pow(dim-1-z_id,1.2); 
-        object.scale.y = sf; 
-        object.position.y += (pyrHeight/2)*sf; 
-
-//        camera.position.x = orbitRadius
+        
+        var absolute_element = Math.log(Math.abs(currentMatrix[z_id*n+x_id])+1);
+        var sf = absolute_element/maxLogVal; 
+        object.scale.y = constrain(sf,0,1); 
+        object.position.y += (pyrHeight*sf)/2; 
 
         // see Junior's code for example use of blenders
 	}
@@ -151,6 +158,17 @@ function renderLoop() {
 
 	renderer.render(scene,camera);
 	requestAnimationFrame(renderLoop);
+    interval = interval < 10 ? interval + 1 : 0;
+}
+
+function constrain(x,lower,upper) {
+    if (x < lower) {
+        return lower;
+    } else if (x > upper) {
+        return upper;
+    } else {
+        return x;
+    }
 }
 
 init();
