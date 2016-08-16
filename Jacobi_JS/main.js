@@ -27,7 +27,7 @@ function init() {
 	document.body.appendChild(canvas);
 
 	objects = [];
-    dim = 4;
+    dim = 10;
     sep = 30;
     pyrHeight = 4*sep;
 
@@ -53,7 +53,7 @@ function addObject() {
     
     // Using wireframe materials to illustrate shape details.
 
-	var darkMaterial = new THREE.MeshBasicMaterial({ color: 0xffffcc });
+	var darkMaterial = new THREE.MeshBasicMaterial({ color: /* 0xffffcc */ 0x0099FF});
 	var wireframeMaterial = new THREE.MeshBasicMaterial( { color: 0x000000, wireframe: true, transparent: true } ); 
 	var multiMaterial = [darkMaterial, wireframeMaterial]; 
 
@@ -130,7 +130,7 @@ function window_onResize() {
 function renderLoop() {
     var n = dim;
     if (interval === 0) {
-       Jacobi.nextElement();
+       var stat = Jacobi.nextElement();
        currentMatrix = Jacobi.getM();
     } 
 
@@ -144,8 +144,13 @@ function renderLoop() {
         object.position.z = -sep*(dim-1)/2 + z_id*sep;
         
         var absolute_element = Math.log(Math.abs(currentMatrix[z_id*n+x_id])+1);
+        if (maxLogVal < absolute_element)  {
+            maxLogVal = absolute_element;
+            i = 0; 
+        }
         var sf = absolute_element/maxLogVal; 
-        object.scale.y = constrain(sf,0,1); 
+        // if scale.y == 0, then threeJS throws errors!
+        object.scale.y = constrain(sf,0.00001,1); 
         object.position.y += (pyrHeight*sf)/2; 
 
         // see Junior's code for example use of blenders
@@ -158,7 +163,7 @@ function renderLoop() {
 
 	renderer.render(scene,camera);
 	requestAnimationFrame(renderLoop);
-    interval = interval < 10 ? interval + 1 : 0;
+    interval = interval < 20 ? interval + 1 : 0;
 }
 
 function constrain(x,lower,upper) {

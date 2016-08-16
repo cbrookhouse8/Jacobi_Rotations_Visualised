@@ -120,6 +120,10 @@ EigenDecomposer.prototype.nextElement = function() {
 
             // move this to the bottom so that
             // one extra sweep isn't done?
+            if (this.sweep === this.maxSweeps) {
+                return false;
+            }
+
             if(sum === 0.0){
                 console.log("");
                 console.log("Decomposition Complete in "+this.sweep+" sweeps");
@@ -260,6 +264,7 @@ EigenDecomposer.prototype.nextElement = function() {
                             this.z[ip] = 0.0;
                         }
                     }
+                    return true;
 } // end of nextElement()
 
 EigenDecomposer.prototype.getMaxAbsElement = function() {
