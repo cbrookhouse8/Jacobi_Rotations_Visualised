@@ -24,6 +24,12 @@ A still from a 1976 Matrix Singular Value Decomposition Film uploaded to YouTube
 
 ![Jacobi_notes](Jacobi_notes.png)
 
+## Further Questions
+
+#### An Algorithm for the SVD
+
+Finding the SVD of a matrix A can be transformed into an eigenvalue/eigenvector decomposition problem where A*transpose(A) and transpose(A)*A are diagonalized.
+
 ## References
 
 https://www.youtube.com/watch?v=R9UoFyqJca8
